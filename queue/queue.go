@@ -9,8 +9,8 @@ import (
 
 type JobQueue struct {
 	mu sync.Mutex
-	Queue []*job.Job
-	List []*job.Job
+	PendingJob []*job.Job
+	AllJob []*job.Job
 	NumWorker int
 	QueueCh chan *job.Job
 }
@@ -18,8 +18,8 @@ type JobQueue struct {
 // channel is where the worker look up to 
 func New(numWorker int) *JobQueue {
 	return &JobQueue{
-		Queue: []*job.Job{},
-		List: []*job.Job{},
+		PendingJob: []*job.Job{},
+		AllJob: []*job.Job{},
 		NumWorker: numWorker,
 		mu : sync.Mutex{},
 		QueueCh: make(chan *job.Job),
@@ -27,7 +27,7 @@ func New(numWorker int) *JobQueue {
 }
 
 func (jq *JobQueue) ListJob() (*[]*job.Job) {
-	return &jq.List
+	return &jq.AllJob
 }
 
 func (jq *JobQueue) AddJob(typeStr string, payload string, id int) (string, error) {
@@ -39,21 +39,21 @@ func (jq *JobQueue) AddJob(typeStr string, payload string, id int) (string, erro
 	}
 	jq.mu.Lock()
 	defer jq.mu.Unlock()
-	
-	jq.List = append(jq.List, &j)
-	jq.Queue = append(jq.Queue, &j)
+
+	jq.AllJob = append(jq.AllJob, &j)
+	jq.PendingJob = append(jq.PendingJob, &j)
 	return "Added new job successfully", nil
 }
 
 func (jq *JobQueue) RetrieveJob() (*job.Job, error) {
-	if len(jq.Queue) == 0 {
+	if len(jq.PendingJob) == 0 {
 		return nil, fmt.Errorf("there is no job right now")
 	}
 	jq.mu.Lock()
 	defer jq.mu.Unlock()
 
-	job := jq.Queue[0]
-	jq.Queue = jq.Queue[1:]
+	job := jq.PendingJob[0]
+	jq.PendingJob = jq.PendingJob[1:]
 	return job, nil
 }
 
