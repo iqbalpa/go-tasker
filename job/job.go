@@ -1,9 +1,6 @@
 package job
 
-import "sync"
-
 type Job struct {
-	sync.Mutex
 	Id      int
 	Payload string
 	JobType JobType
