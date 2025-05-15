@@ -15,7 +15,7 @@ func Process(i int, ch chan *Job) {
 		)
 		
 		job.Status = Running
-		timer := time.NewTimer(10 * time.Second)
+		timer := time.NewTimer(100 * time.Millisecond)
 		<-timer.C
 		job.Status = Completed
 

@@ -20,7 +20,7 @@ func New(numWorker int) *JobQueue {
 		AllJob: []*job.Job{},
 		NumWorker: numWorker,
 		mu : sync.Mutex{},
-		QueueCh: make(chan *job.Job),
+		QueueCh: make(chan *job.Job, 50),
 	}
 }
 
