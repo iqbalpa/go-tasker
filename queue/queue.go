@@ -1,6 +1,7 @@
 package queue
 
 import (
+	"context"
 	"fmt"
 	"go-tasker/job"
 	"go-tasker/logger"
@@ -19,8 +20,8 @@ func New(numWorker int) *JobQueue {
 	return &JobQueue{
 		AllJob: []*job.Job{},
 		NumWorker: numWorker,
+		QueueCh: make(chan *job.Job, 100),
 		mu : sync.Mutex{},
-		QueueCh: make(chan *job.Job, 50),
 	}
 }
 
@@ -35,19 +36,18 @@ func (jq *JobQueue) AddJob(typeStr string, payload string, id int) (string, erro
 		Status: job.Pending,
 		Id: id,
 	}
-	jq.mu.Lock()
-	defer jq.mu.Unlock()
-
 	jq.AllJob = append(jq.AllJob, &j)
 	jq.QueueCh <- &j
 	return "Added new job successfully", nil
 }
 
-func (jq *JobQueue) StartWorkers() {
+func (jq *JobQueue) StartWorkers(ctx context.Context, wg *sync.WaitGroup) {
 	logger.Info("Starting the workers!")
+
 	// create workers (goroutines)
 	for i := 0; i < jq.NumWorker; i++ {
 		logger.Info(fmt.Sprintf("Creating worker %d", i+1))
-		go job.Process(i, jq.QueueCh)
+		wg.Add(1)
+		go job.Process(ctx, wg, i, jq.QueueCh)
 	}
 }
