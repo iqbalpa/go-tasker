@@ -37,6 +37,9 @@ func (jq *JobQueue) AddJob(typeStr string, payload string, id int) (string, erro
 		Status: job.Pending,
 		Id: id,
 	}
+	jq.mu.Lock()
+	defer jq.mu.Unlock()
+	
 	jq.List = append(jq.List, &j)
 	jq.Queue = append(jq.Queue, &j)
 	return "Added new job successfully", nil
