@@ -20,24 +20,33 @@ func New(numWorker int) *JobQueue {
 	return &JobQueue{
 		AllJob: []*job.Job{},
 		NumWorker: numWorker,
-		QueueCh: make(chan *job.Job, 100),
+		QueueCh: make(chan *job.Job, 50),
 		mu : sync.Mutex{},
 	}
 }
 
-func (jq *JobQueue) ListJob() (*[]*job.Job) {
-	return &jq.AllJob
+func (jq *JobQueue) ListJob() ([]*job.Job) {
+	return jq.AllJob
 }
 
-func (jq *JobQueue) AddJob(typeStr string, payload string, id int) (string, error) {
+func (jq *JobQueue) AddJob(ctx context.Context, typeStr string, payload string, id int) (string, error) {
 	j := job.Job{
 		Payload: payload,
 		JobType: job.JobType(typeStr),
 		Status: job.Pending,
 		Id: id,
 	}
-	jq.AllJob = append(jq.AllJob, &j)
-	jq.QueueCh <- &j
+
+	select {
+	case <-ctx.Done():
+		logger.Error(fmt.Sprintf("failed to queue job %d: context deadline exceeded", id))
+		return "", ctx.Err()
+	case jq.QueueCh <-&j:
+		jq.mu.Lock()
+		defer jq.mu.Unlock()
+		jq.AllJob = append(jq.AllJob, &j)
+	}
+
 	return "Added new job successfully", nil
 }
 

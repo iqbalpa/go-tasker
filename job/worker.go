@@ -24,6 +24,9 @@ func Process(ctx context.Context, wg *sync.WaitGroup, i int, ch chan *Job) {
 			if !ok {
 				return
 			}
+			if job == nil {
+				continue
+			}
 
 			logger.Info(
 				fmt.Sprintf("Worker %d is processing job %d", i, job.Id),

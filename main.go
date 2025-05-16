@@ -12,21 +12,22 @@ import (
 func main() {
 	var wg sync.WaitGroup
 
-	d := time.Now().Add(5 * time.Second)
+	d := time.Now().Add(20 * time.Second)
 	ctx, cancelCtx := context.WithDeadline(context.Background(), d)
 
 	jq := queue.New(3)
 	jq.StartWorkers(ctx, &wg)
 
-	for i:=0; i<50; i++ {
+	for i:=0; i<1000; i++ {
 		jq.AddJob(
+			ctx,
 			string(job.Email),
 			fmt.Sprintf("Message %d", i+1),
 			i+1,
 		)
 	}
 
-	close(jq.QueueCh)
+	close(jq.QueueCh) 
 	wg.Wait()
 
 	cancelCtx()
