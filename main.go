@@ -13,7 +13,7 @@ func main() {
 	var wg sync.WaitGroup
 	
 	// Define context deadline
-	d := time.Now().Add(20 * time.Second)
+	d := time.Now().Add(5 * time.Second)
 	ctx, cancelCtx := context.WithDeadline(context.Background(), d)
 
 	// Initialize 3 workers
@@ -33,20 +33,20 @@ func main() {
 		fmt.Print("Failed to decode jobs")
 		return
 	}
-	
+
 	// Add job to the queue (channel)
 	for _, j := range jobs {
 		jq.AddJob(
 			ctx,
-			string(j.JobType),
-			j.Payload,
-			j.Id,
+			j,
 		)
 	}
 
 	// close the channel and wait for goroutines finished 
 	close(jq.QueueCh) 
 	wg.Wait()
+
+	fmt.Print(utils.CountCompleted(jobs))
 
 	// cancel the context (optional), because I already defined the deadline
 	cancelCtx()

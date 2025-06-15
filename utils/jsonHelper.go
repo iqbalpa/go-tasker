@@ -25,13 +25,28 @@ func OpenFile(fname string) ([]byte, error) {
 	return jsonByte, nil
 }
 
-func Byte2Object(jsonByte []byte) ([]job.Job, error) {
-	var jobs []job.Job
+func Byte2Object(jsonByte []byte) ([]*job.Job, error) {
+	var jobs []*job.Job
 	
 	err := json.Unmarshal(jsonByte, &jobs)
 	if err != nil {
-		return []job.Job{}, fmt.Errorf("failed to decode the json")
+		return []*job.Job{}, fmt.Errorf("failed to decode the json")
 	}
 
 	return jobs, nil
+}
+
+func CountCompleted(jobs []*job.Job) (int, int) {
+	completed := 0
+	pending := 0
+
+	for _, j := range jobs {
+		if j.Status == job.Completed {
+			completed += 1
+		} else {
+			pending += 1
+		}
+	}
+
+	return completed, pending
 }

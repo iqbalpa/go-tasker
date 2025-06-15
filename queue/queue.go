@@ -29,22 +29,15 @@ func (jq *JobQueue) ListJob() ([]*job.Job) {
 	return jq.AllJob
 }
 
-func (jq *JobQueue) AddJob(ctx context.Context, typeStr string, payload string, id int) (string, error) {
-	j := job.Job{
-		Payload: payload,
-		JobType: job.JobType(typeStr),
-		Status: job.Pending,
-		Id: id,
-	}
-
+func (jq *JobQueue) AddJob(ctx context.Context, j *job.Job) (string, error) {
 	select {
 	case <-ctx.Done():
-		logger.Error(fmt.Sprintf("failed to queue job %d: context deadline exceeded", id))
+		logger.Error(fmt.Sprintf("failed to queue job %d: context deadline exceeded", j.Id))
 		return "", ctx.Err()
-	case jq.QueueCh <-&j:
+	case jq.QueueCh <-j:
 		jq.mu.Lock()
 		defer jq.mu.Unlock()
-		jq.AllJob = append(jq.AllJob, &j)
+		jq.AllJob = append(jq.AllJob, j)
 	}
 
 	return "Added new job successfully", nil
