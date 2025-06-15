@@ -50,3 +50,20 @@ func CountCompleted(jobs []*job.Job) (int, int) {
 
 	return completed, pending
 }
+
+func Object2Byte(jobs []*job.Job) ([]byte, error) {
+	b, err := json.Marshal(jobs)
+	if err != nil {
+		return []byte{}, fmt.Errorf("failed to encode the jobs")
+	}
+	return b, nil
+}
+
+func SaveFile(fname string, byteJobs []byte) (error) {
+	err := os.WriteFile(fname, byteJobs, 0644)
+	if err != nil {
+		fmt.Println(err)
+		return fmt.Errorf("failed to save the file")
+	}
+	return nil
+}

@@ -23,14 +23,14 @@ func main() {
 	// Read the jobs
 	jsonByte, err := utils.OpenFile("data/job.json")
 	if err != nil {
-		fmt.Print("Failed to open the job.json")
+		fmt.Println(err)
 		return
 	}
 
 	// Convert the byte file to job object
 	jobs, err := utils.Byte2Object(jsonByte)
 	if err != nil {
-		fmt.Print("Failed to decode jobs")
+		fmt.Println(err)
 		return
 	}
 
@@ -46,8 +46,25 @@ func main() {
 	close(jq.QueueCh) 
 	wg.Wait()
 
-	fmt.Print(utils.CountCompleted(jobs))
-
 	// cancel the context (optional), because I already defined the deadline
 	cancelCtx()
+
+
+	// ======================================================================
+	fmt.Println(utils.CountCompleted(jobs))
+
+	// convert object to byte
+	jobsByte, err := utils.Object2Byte(jobs)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	// save the jobs to a new file
+	fname := "data/job-updated.json"
+	err = utils.SaveFile(fname, jobsByte)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 }
