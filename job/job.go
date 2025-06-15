@@ -1,10 +1,10 @@
 package job
 
 type Job struct {
-	Id      int
-	Payload string
-	JobType JobType
-	Status  JobStatus
+	Id      int       `json:'id'`
+	Payload string    `json:'payload'`
+	JobType JobType   `json:'jobType'`
+	Status  JobStatus `json:'status'`
 }
 
 type JobType string
